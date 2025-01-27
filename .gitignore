@@ -1,0 +1,13 @@
+# configuration environnement 
+.env*
+devenv
+
+# Django 
+*.log
+.pot
+.pyc
+__pycache__
+migrations
+
+# Docker generated files/folder
+mysql
