@@ -3,6 +3,8 @@ set -x
 yum update -y
 yum install docker -y
 
+
+
 systemctl start docker
 systemctl enable docker
 
@@ -14,11 +16,9 @@ systemctl is-enabled docker
 usermod -a -G docker ec2-user
 chmod 666 /var/run/docker.sock
 
-DOCKER_CONFIG="$HOME/.docker"
-echo "$DOCKER_CONFIG"
+DOCKER_COMPOSE_VERSION="1.29.2"
+curl -SL "https://github.com/docker/compose/releases/download/$DOCKER_COMPOSE_VERSION/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
 
-mkdir -p $DOCKER_CONFIG/cli-plugins
 
-curl -SL https://github.com/docker/compose/releases/download/v2.32.4/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
 
-chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
