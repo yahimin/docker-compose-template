@@ -31,9 +31,9 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     """
   
     def validate(self,attrs):
-            api_type_set = {'password' , 'password_second'}
-            
-            api_type_filter = attrs.items()
+            api_type_set = {'email', 'name' , 'password' , 'password_second'}
+        
+            api_type_filter = list(attrs.keys())
             
             if not set(api_type_filter).issubset(api_type_set):
                 raise InternalServerErrorException(f"mismacted set filed , expected in {api_type_set}")
