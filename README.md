@@ -1,4 +1,4 @@
-## Overview  
+## Overview (jwt Demo)
 
 This project demonstrates deploying a **Django + MySQL + JWT authentication** web application using **Docker** on **AWS EC2**.  
 
