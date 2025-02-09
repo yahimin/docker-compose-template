@@ -26,8 +26,6 @@ class User(AbstractBaseUser):
         default='email',
         max_length=255)
     name = models.CharField(max_length=200)
-
-    password_seconde = models.CharField(default='password_second',max_length=100)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
