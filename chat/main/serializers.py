@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from main.models import User
 
-
+from rest_framework.response import Response
 from main.core._exception import InternalServerErrorException
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -14,7 +14,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         
         r""" 
             password 필드 쓰기만 가능하게 (사용자가 데이터를 전송할때는 필드에 값을 쓸수있지만 ,
-            응답으로 데이터를 보낼때는 필드가 포함되지 않게)
+            응답으로 데이터를 보낼때는 필드가 포함되지 않게) => 비밀번호 숨기기
         """
         
         extra_kwargs={
@@ -36,7 +36,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             api_type_filter = list(attrs.keys())
             
             if not set(api_type_filter).issubset(api_type_set):
-                raise InternalServerErrorException(f"mismacted set filed , expected in {api_type_set}")
+                raise InternalServerErrorException(f'mismacted set filed , expected in {api_type_set}')
         
             password = attrs.get('password')
             password_second = attrs.get('password_second')
@@ -60,4 +60,24 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     def create(self,validate_data):            
         return User.objects.create_user(**validate_data)
         
+
+class UserDataListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
         
+        fields = ['email','name']
+        
+        extra_kwargs={
+            'password' : {'write_only': True},
+        }
+        
+    
+      
+    def validate(self,attrs):
+            api_type_set = {'email', 'name'}
+
+            api_type_fileter = list(attrs.keys())
+            
+            
+            if not set(api_type_set).issubset(api_type_set):
+                raise InternalServerErrorException(f'mismacted set filed , expected in {api_type_set}')

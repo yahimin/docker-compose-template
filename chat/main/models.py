@@ -13,14 +13,17 @@ class UserManager(BaseUserManager):
             name = name,
         )
         
-        r""" 해시된 비밀번호 생성 """
+        # 해시된 비밀번호 생성
         user.set_password(password)
         
-        r""" 디비에 저장 setting.py Database 'default' """
+        #  디비에 저장 setting.py Database 'default'
         user.save(using = self._db)
         return user
+     
                 
-r""" 자동으로 password , last_login 필드 모델에 적용되게 AbstractBaseUser 상속 """
+r""" 
+  자동으로 password , last_login 필드 모델에 적용되게 AbstractBaseUser 상속
+"""
 class User(AbstractBaseUser):
     email = models.EmailField(
         default='email',
@@ -34,5 +37,5 @@ class User(AbstractBaseUser):
     
         
     def __str__(self):
-        return self.email
+        return f'{self.email} {self.name}'
     

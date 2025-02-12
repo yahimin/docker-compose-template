@@ -12,10 +12,22 @@ services:
     #   - ./.env.dev
     environment:
       - MYSQL_ROOT_PASSWORD=${SQL_ROOT_PASSWORD}
+      - MYSQL_USER=${SQL_USER}
       - MYSQL_PASSWORD=${SQL_PASSWORD}
       - MYSQL_DATABASE=${SQL_DATABASE}
     ports:
       - 3307:3306
+
+    networks:
+      - backend
+
+    # wait-for.sh connection error soultion
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u${MYSQL_USER} -p${MYSQL_PASSWORD}"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     
   web:
     container_name: django-web
@@ -40,9 +52,11 @@ services:
     ports:
         - 8000:8000
     restart: always
-
+    
     depends_on:
-        - db
+      db:
+        condition: service_healthy
+        restart: true
     links:
         - db
 
@@ -51,7 +65,7 @@ services:
 volumes:
   db:
 
-# webnet라는 네트워크 사용해서 두 서비스가 동일한 네트워크 내에서 서로 통신하게 만듬
+# backend 네트워크 사용해서 두 서비스가 동일한 네트워크 내에서 서로 통신하게 만듬
 networks:
-  webnet:
+  backend:
     driver: bridge
