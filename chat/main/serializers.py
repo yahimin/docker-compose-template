@@ -36,13 +36,13 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             api_type_filter = list(attrs.keys())
             
             if not set(api_type_filter).issubset(api_type_set):
-                raise InternalServerErrorException(f'mismacted set filed , expected in {api_type_set}')
+                raise InternalServerErrorException(f'msg : mismacted set filed , expected in {api_type_set}')
         
             password = attrs.get('password')
             password_second = attrs.get('password_second')
             
             if password != password_second:
-                raise BadRequestException({'msg' : 'Password and Confirm do not match'},status=status.HTTP_400_BAD_REQUEST)
+                raise BadRequestException({'msg' : 'Password and Confirm do not {api_type_set} match'},status=status.HTTP_400_BAD_REQUEST)
         
             if len(password) > 8 or len(password_second) > 8:
                 raise BadRequestException({'msg': 'User password len is incorrect'}, status=status.HTTP_400_BAD_REQUEST)
@@ -81,3 +81,11 @@ class UserDataListSerializer(serializers.ModelSerializer):
             
             if not set(api_type_set).issubset(api_type_set):
                 raise InternalServerErrorException(f'mismacted set filed , expected in {api_type_set}')
+            
+class UserLoginSerializer(serializers.ModelSerializer):
+    
+    class Meta: 
+        model = User
+        
+        fields = ['email','password']
+        

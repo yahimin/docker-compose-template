@@ -14,7 +14,7 @@
     <h1>Hello, welcome to my Django app!</h1>
 
 
-    <form method = "post" action ="api/register/">
+    <form method = "post" action ="api/register">
         {% csrf_token %}
         <label for="email"> your email : </label>
         <input id="email" type="text" name="email"></input>
@@ -30,6 +30,15 @@
     
         <input type="submit" value="submit"/>
     </form>
+
+
+
+    <a href="{% url 'loginpage' %}">
+        <button>Login</button>
+    </a>
+      
+    
+
 
 </body>
 </html>
