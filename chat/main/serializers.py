@@ -1,8 +1,8 @@
 from rest_framework import serializers
 from main.models import User
-
+from rest_framework import status
 from rest_framework.response import Response
-from main.core._exception import InternalServerErrorException
+from main.core._exception import InternalServerErrorException , BadRequestException
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password_second = serializers.CharField(required=False)
@@ -42,13 +42,13 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             password_second = attrs.get('password_second')
             
             if password != password_second:
-                raise serializers.ValidationError('Password and Confirm do not match')
+                raise BadRequestException({'msg' : 'Password and Confirm do not match'},status=status.HTTP_400_BAD_REQUEST)
         
             if len(password) > 8 or len(password_second) > 8:
-                raise serializers.ValidationError('User Password len is incorrect')
+                raise BadRequestException({'msg': 'User password len is incorrect'}, status=status.HTTP_400_BAD_REQUEST)
 
             if password.isdigit() or password_second.isdigit():
-                raise serializers.ValidationError('User Password is entirely numberic')
+                raise BadRequestException({'msg': 'User password is entirely numberic'}, status=status.HTTP_400_BAD_REQUEST)
 
             return attrs
 

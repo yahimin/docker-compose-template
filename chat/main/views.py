@@ -2,11 +2,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from main.url_renders import UserRenders
-from main.serializers import UserRegistrationSerializer , UserDataListSerializer
+from main.serializers import UserRegistrationSerializer
 from django.shortcuts import render
+from main.models import User
 
-
-from main.core._exception import InternalServerErrorException
+from main.core._exception import InternalServerErrorException , BadRequestException
 
 def lazy_import():
     try:
@@ -30,7 +30,7 @@ def get_tokens_users(user):
     }
     
     
- # TODO : [] : 회원가입 중복 이메일 못들어가게 막기 (MYSQL에 이메일만 저장해서 관리하고 중복검사)    
+ # TODO : [x] : 회원가입 중복 이메일 못들어가게 막기   
 class UserRegisterView(APIView):
     renderer_classes = [UserRenders]
     
@@ -40,24 +40,30 @@ class UserRegisterView(APIView):
         serializer = UserRegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
     
+
+        users = User.objects.all()
+        
+        client_email = request.data['email']
+        
+        for user in users:
+            if client_email == user.email:
+                    raise BadRequestException({'msg': 'Duplicate  email'},status=status.HTTP_400_BAD_REQUEST)
+
+        
         user = serializer.save()
             
         try:
             token = get_tokens_users(user)
-            print(token) 
-
             return Response({'token':token,'msg':'Registration Success'},status=status.HTTP_201_CREATED)
 
         except Exception as e:
-            raise InternalServerErrorException('Server Error!')
+            raise InternalServerErrorException('Server Error!', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 class UserListView(APIView):
     renderer_classes = [UserRenders]
     
     def get(self,fromat=None):
         try:
-            from main.models import User
-            
             users = User.objects.all()
             user_data=[]
             
@@ -71,10 +77,13 @@ class UserListView(APIView):
             return Response(user_data, status=status.HTTP_200_OK)
 
         except Exception as e:
-            raise InternalServerErrorException('Server Error!')
+            raise InternalServerErrorException('Server Error!',status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
         
-
+class UserLoginView(APIView):
+    
+    renderer_classes = [UserRenders]
+    
 
 
         
