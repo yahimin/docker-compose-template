@@ -43,7 +43,7 @@ services:
     # volumes:
     #   - /var/lib/docker/volumes/backend/_data
 
-    # 저장할 코드베이스가 없음 (./chat 디렉터리의 파일이 변경될때마다 컨테이너 내부 .chat:/app에 바로 반영됨)
+    # ./chat 디렉터리의 파일이 변경될때마다 컨테이너 내부 .chat:/app에 바로 반영됨
     volumes:
       - ./chat:/app
 

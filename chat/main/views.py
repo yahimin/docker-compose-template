@@ -5,12 +5,17 @@ from main.url_renders import UserRenders
 from main.serializers import UserRegistrationSerializer,UserLoginSerializer,UserDeleteSerializer
 from django.shortcuts import render
 from main.models import User
-from django.contrib.auth import authenticate    
+from django.contrib.auth import authenticate
+import requests
+
+
+from typing import Optional
+
 
 import random
 
-from main.core._exception import InternalServerErrorException,BadRequestException,NotFoundException
-
+from main.core._exception import MethodNotAllowd,InternalServerErrorException,BadRequestException,NotFoundException
+from main.core._client import HTTPClient
 
 def lazy_import():
     try:
@@ -34,26 +39,43 @@ def get_tokens_users(user):
         'refresh': str(refresh),
         'access': str(refresh.access_token),
     }
-    
-    
+
+
+# TODO [] : header check class
 class UserRegisterView(APIView):
-    
     # 요청 들어오는 필드 값이 빈값인지 유효성 검사
     renderer_classes = [UserRenders]
+    
+    
+    
+    @staticmethod
+    def init_response(response):        
+        csrf = response['Cookie'].split('=')[1]
+        domain = response['Origin']
+        user_aent = response['User-Agent']
+        
+        if response is not None:
+            HTTPClient(csrf,domain,user_aent)
+        
+        
     
     def post(self,request,format=None):
         
         serializer = UserRegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-    
+        
         try:
             users = User.objects.all()
             
             client_email = request.data['email']
-            
+        
             for user in users:
                 if client_email == user.email:
                         raise BadRequestException({'msg': 'Duplicate  email'},status=status.HTTP_400_BAD_REQUEST)
+             
+             # http header checking (csrf , domain)                   
+            __class__.init_response(request.headers)
+            
             user = serializer.save()
         
             return Response({'msg' : 'Register Sucess!'}, status=status.HTTP_201_CREATED)
@@ -65,6 +87,7 @@ class UserRegisterView(APIView):
 class UserListView(APIView):
     renderer_classes = [UserRenders]
     
+        
     def get(self,fromat=None):
         try:
             users = User.objects.all()

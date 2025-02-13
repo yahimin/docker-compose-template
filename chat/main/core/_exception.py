@@ -39,3 +39,8 @@ class ForbiddenException(BaseRPCException):
     ForbiddenException reporesent HTTP code 403.
     """
     pass
+
+class MethodNotAllowd(BaseException):
+    r"""
+    Method Not Allowed HTTP code 405.
+    """

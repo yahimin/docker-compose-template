@@ -1,29 +1,34 @@
 import requests
-from aiohttp import ClientResponse
+from typing import Optional
 
-r"""
-    Slow I/O bound
-    => 네트워크 요청시 알수없는 네트워크 지연에 대비해서 비동기로 처리 
-    => 또한 i/o바운드는 경쟁조건에 대비할 필요가 없기에 
-    
-    (i/o 바운드는 cpu 성능보다는 네트워크 , 데이터베이스 , 처리속도에 의해 성능이 결정됨)
-    
-"""
 
-class AsyncHTTPClinet():
+
+class HTTPClient:
+    
+    def __init__(self, csrf: Optional[str] = None , domain: str = '' , user_agent: str =''):
+        # csrf token        
+        self._init_csrf_token(csrf)
+        self._init_local(domain)
+        self._init_agent(user_agent)
+    
+    
+    def _init_csrf_token(self,csrf):        
+        print('5###########',csrf)
+        pass
+
+    def _init_local(self,local_url):
+        pass
+        
+    def _init_agent(self,user_agent):
+        pass
+
+
+
+class AsyncHTTPClinet(HTTPClient):
     
     @staticmethod
     async def check_response_header(response: requests.Response):
         r"""
             check_response_header is a helper 
         """
-        pass
-    
-    
-    @staticmethod
-    async def check_rquest_id(response: requests.Response):
-        r"""
-            check_request_id is helper to get unique request id
-        """        
-        pass
-        
+        pass    
