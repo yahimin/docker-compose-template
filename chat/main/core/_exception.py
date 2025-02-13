@@ -1,5 +1,6 @@
 r"""
-    inlcude HTTP and backend server and client exception    
+    inlcude HTTP and backend server and client exception   
+    => http backend , client excpetion 에러 모음 
 """
 
 

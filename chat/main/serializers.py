@@ -72,15 +72,17 @@ class UserDataListSerializer(serializers.ModelSerializer):
         }
         
     
-      
+    r"""
+        요청들어오는 필드가 존재하는지 확인 
+    """
+    
     def validate(self,attrs):
-            api_type_set = {'email', 'name'}
+        api_type_set = {'email', 'name'}
 
-            api_type_fileter = list(attrs.keys())
+        api_type_fileter = list(attrs.keys())
             
-            
-            if not set(api_type_set).issubset(api_type_set):
-                raise InternalServerErrorException(f'mismacted set filed , expected in {api_type_set}')
+        if not set(api_type_fileter).issubset(api_type_set):
+            raise InternalServerErrorException(f'mismacted set filed , expected in {api_type_set}')
             
 class UserLoginSerializer(serializers.ModelSerializer):
     
@@ -88,4 +90,24 @@ class UserLoginSerializer(serializers.ModelSerializer):
         model = User
         
         fields = ['email','password']
+        
+        
+        
+    def validate(self,attrs):
+        api_type_set = {'email', 'password'}
+ 
+        api_type_fileter = list(attrs.keys())
+            
+        if not set(api_type_fileter).issubset(api_type_set):
+            raise InternalServerErrorException(f'mismacted set filed , expected in {api_type_set}')       
+
+
+class UserDeleteSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = User
+        
+        fields = ['id']
+        
+        
         

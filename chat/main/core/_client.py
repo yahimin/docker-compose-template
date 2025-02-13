@@ -1,4 +1,6 @@
 import requests
+from aiohttp import ClientResponse
+
 r"""
     Slow I/O bound
     => 네트워크 요청시 알수없는 네트워크 지연에 대비해서 비동기로 처리 
@@ -15,5 +17,13 @@ class AsyncHTTPClinet():
         r"""
             check_response_header is a helper 
         """
-    
         pass
+    
+    
+    @staticmethod
+    async def check_rquest_id(response: requests.Response):
+        r"""
+            check_request_id is helper to get unique request id
+        """        
+        pass
+        

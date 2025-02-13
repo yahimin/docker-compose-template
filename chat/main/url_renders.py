@@ -1,7 +1,9 @@
 from rest_framework import renderers
 import json
 
-r""" 클라이언트 request한 데이터를 json으로 렌더링해서 오류 검사하고 다시 response """
+r""" 
+    클라이언트 request한 데이터를 json으로 렌더링해서 오류 검사하고 다시 response 
+"""
 
 class UserRenders(renderers.JSONRenderer):   
     charset='utf-8'

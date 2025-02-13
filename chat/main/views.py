@@ -2,14 +2,15 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from main.url_renders import UserRenders
-from main.serializers import UserRegistrationSerializer,UserLoginSerializer
+from main.serializers import UserRegistrationSerializer,UserLoginSerializer,UserDeleteSerializer
 from django.shortcuts import render
 from main.models import User
 from django.contrib.auth import authenticate    
 
-
+import random
 
 from main.core._exception import InternalServerErrorException,BadRequestException,NotFoundException
+
 
 def lazy_import():
     try:
@@ -36,6 +37,8 @@ def get_tokens_users(user):
     
     
 class UserRegisterView(APIView):
+    
+    # 요청 들어오는 필드 값이 빈값인지 유효성 검사
     renderer_classes = [UserRenders]
     
     def post(self,request,format=None):
@@ -65,15 +68,16 @@ class UserListView(APIView):
     def get(self,fromat=None):
         try:
             users = User.objects.all()
+
             user_data=[]
             
             for user in users:
+                
                 to_email = user.email
                 to_name = user.name
                 
                 user_data.append({'email' : to_email , 'name' : to_name})
-            
-            
+                        
             return Response(user_data, status=status.HTTP_200_OK)
 
         except Exception as e:
@@ -88,13 +92,11 @@ class UserLoginView(APIView):
         serializer = UserLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        
         email = serializer.data.get('email')
         password = serializer.data.get('password')
 
         user = User.objects.get(email=email)
-        
-        
+
         try:
             if user.check_password(password):
                 token = get_tokens_users(user)
@@ -104,17 +106,43 @@ class UserLoginView(APIView):
             
         except Exception as e:
             raise InternalServerErrorException('Server Error!' , status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class UserDeleteView(APIView):
+    renderer_classes = [UserRenders]
+    
+    def post(self,request,format=None):
+        
+        serializer = UserDeleteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            users = User.objects.all()
+            print(users)
             
+            
+            #  삭제할 id 추출 (모델에 존재하는 유니크한 id중 랜덤 추출) 
+            id_pair = [(object.id) for object in users]
+            
+            delete_id = random.choice(id_pair)
 
-    
-    
-
-
+            delet_email = User.objects.get(id=delete_id).email            
+            
+            instance = User.objects.get(id=delete_id)
+            instance.delete()
+                
+                   
+            return Response({'msg' : f'Delete {delet_email} Sucess!'} , status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            raise InternalServerErrorException('Servier Error!', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
     
         
         
-
+# [] : TODO curl -l 로 비밀번호 패스워드 변경 테스트해보기
+class ChangePassword(APIView):
+    pass
         
 
 
