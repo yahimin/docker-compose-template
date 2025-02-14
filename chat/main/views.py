@@ -41,23 +41,22 @@ def get_tokens_users(user):
     }
 
 
-# TODO [] : header check class
+class HTTPComponent:
+    
+    @staticmethod
+    def init_response(local_url):        
+        print('########',local_url)
+        
+        if local_url is not None:
+            HTTPClient.verfiy_url(local_url)
+            
+            
+
+
+# TODO [x] : header check class
 class UserRegisterView(APIView):
     # 요청 들어오는 필드 값이 빈값인지 유효성 검사
     renderer_classes = [UserRenders]
-    
-    
-    
-    @staticmethod
-    def init_response(response):        
-        csrf = response['Cookie'].split('=')[1]
-        domain = response['Origin']
-        user_aent = response['User-Agent']
-        
-        if response is not None:
-            HTTPClient(csrf,domain,user_aent)
-        
-        
     
     def post(self,request,format=None):
         
@@ -73,8 +72,11 @@ class UserRegisterView(APIView):
                 if client_email == user.email:
                         raise BadRequestException({'msg': 'Duplicate  email'},status=status.HTTP_400_BAD_REQUEST)
              
-             # http header checking (csrf , domain)                   
-            __class__.init_response(request.headers)
+             # http header checking (csrf , domain)     
+            
+            
+            origin = request.headers['Origin']            
+            HTTPComponent.init_response(origin)
             
             user = serializer.save()
         
@@ -123,6 +125,10 @@ class UserLoginView(APIView):
         try:
             if user.check_password(password):
                 token = get_tokens_users(user)
+                
+                origin = request.headers['Origin']            
+                HTTPComponent.init_response(origin)
+        
                 return Response({'token' : token, 'msg' : 'Login Sucess'},status=status.HTTP_200_OK)
             else:
                 raise NotFoundException({'msg': 'Email password is incorrect'}, status=status.HTTP_404_NOT_FOUND)
@@ -154,7 +160,9 @@ class UserDeleteView(APIView):
             instance = User.objects.get(id=delete_id)
             instance.delete()
                 
-                   
+            origin = request.headers['Origin']            
+            HTTPComponent.init_response(origin)
+        
             return Response({'msg' : f'Delete {delet_email} Sucess!'} , status=status.HTTP_200_OK)
             
         except Exception as e:

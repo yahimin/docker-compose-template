@@ -1,34 +1,28 @@
 import requests
+
+
 from typing import Optional
-
-
+from main.core.constant import HTTP,HOST,PORT
+from main.core._exception import NotFoundException
+from rest_framework import status
 
 class HTTPClient:
     
-    def __init__(self, csrf: Optional[str] = None , domain: str = '' , user_agent: str =''):
-        # csrf token        
-        self._init_csrf_token(csrf)
-        self._init_local(domain)
-        self._init_agent(user_agent)
-    
-    
-    def _init_csrf_token(self,csrf):        
-        print('5###########',csrf)
-        pass
-
-    def _init_local(self,local_url):
-        pass
-        
-    def _init_agent(self,user_agent):
-        pass
-
-
-
-class AsyncHTTPClinet(HTTPClient):
-    
     @staticmethod
-    async def check_response_header(response: requests.Response):
-        r"""
-            check_response_header is a helper 
-        """
-        pass    
+    def verfiy_url(local_url):
+        try:
+            from urllib.parse import urlparse            
+            pared_url = urlparse(local_url)
+            domain_name = pared_url.netloc.split(':')
+            
+            local = domain_name[0]
+            port = domain_name[1]
+            scheme = pared_url.scheme
+            
+            if local != HOST or port != PORT or scheme != HTTP:
+                return False            
+                             
+        except Exception as e:
+            raise NotFoundException({'msg': 'request client not found'}, status=status.HTTP_404_NOT_FOUND)
+            
+
