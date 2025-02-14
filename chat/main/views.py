@@ -1,27 +1,18 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from django.http import JsonResponse
 from main.url_renders import UserRenders
-from main.serializers import UserRegistrationSerializer,UserLoginSerializer,UserDeleteSerializer
+from main.serializers import UserChangePasswordSerializer,UserRegistrationSerializer,UserLoginSerializer,UserDeleteSerializer
 from django.shortcuts import render
 from main.models import User
-from django.contrib.auth import authenticate
-import requests
-
-
-from typing import Optional
-
-
+from rest_framework.permissions import IsAuthenticated
 import random
 
-from main.core._exception import MethodNotAllowd,InternalServerErrorException,BadRequestException,NotFoundException
+from main.core._exception import InternalServerErrorException,BadRequestException,NotFoundException
 from main.core._client import HTTPClient
 
-def lazy_import():
-    try:
-        from rest_framework_simplejwt.tokens import RefreshToken
-    except Exception as e:
-        raise ImportError('Plase install Simple jwt')
+
 
 def homepage(request):
     return render(request,'home.html')
@@ -29,23 +20,36 @@ def homepage(request):
 def loginpage(request):
     return render(request,'view.html')
 
+def changepage(request):
+    return render(request,'chage.html')
+
 def get_tokens_users(user):
+    try:
+        from rest_framework_simplejwt.tokens import RefreshToken
+        from rest_framework_simplejwt.tokens import AccessToken
+        
+        token = RefreshToken.for_user(user)
     
-    lazy_import()
-    from rest_framework_simplejwt.tokens import RefreshToken
-    refresh = RefreshToken.for_user(user)
-    
-    return {
-        'refresh': str(refresh),
-        'access': str(refresh.access_token),
-    }
+        return {
+            'refresh': str(token),
+            'access': str(token.access_token),
+        }
+    except Exception as e:
+        raise ImportError('Plase install Simple jwt')
+ 
 
 
 class HTTPComponent:
     
     @staticmethod
     def init_response(local_url):        
-        print('########',local_url)
+        
+        # refactor => HTTPClient 
+        import jwt
+        token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzM5NTM5NjQ1LCJpYXQiOjE3Mzk1MzcyNDUsImp0aSI6IjBmNzcyMTIxZTJhNzRhZjdiZjg2OGUwZDk1MmFhYzNhIiwidXNlcl9pZCI6NTZ9.fAHX49cyZRAjrJIGok-bcUusEfY1PfECtCti034La80'
+        
+        decoded = jwt.decode(token,options={'verify_signature' : False})
+        print(decoded)
         
         if local_url is not None:
             HTTPClient.verfiy_url(local_url)
@@ -95,11 +99,14 @@ class UserListView(APIView):
             users = User.objects.all()
 
             user_data=[]
-            
+            from rest_framework_simplejwt.tokens import AccessToken
             for user in users:
+                
+                
                 
                 to_email = user.email
                 to_name = user.name
+                
                 
                 user_data.append({'email' : to_email , 'name' : to_name})
                         
@@ -128,7 +135,7 @@ class UserLoginView(APIView):
                 
                 origin = request.headers['Origin']            
                 HTTPComponent.init_response(origin)
-        
+                
                 return Response({'token' : token, 'msg' : 'Login Sucess'},status=status.HTTP_200_OK)
             else:
                 raise NotFoundException({'msg': 'Email password is incorrect'}, status=status.HTTP_404_NOT_FOUND)
@@ -146,10 +153,7 @@ class UserDeleteView(APIView):
         serializer.is_valid(raise_exception=True)
 
         try:
-            users = User.objects.all()
-            print(users)
-            
-            
+            users = User.objects.all()            
             #  삭제할 id 추출 (모델에 존재하는 유니크한 id중 랜덤 추출) 
             id_pair = [(object.id) for object in users]
             
@@ -168,12 +172,19 @@ class UserDeleteView(APIView):
         except Exception as e:
             raise InternalServerErrorException('Servier Error!', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+
+# [X] : TODO curl -l 로 비밀번호 패스워드 변경 테스트해보기
+class UserChangePasswordView(APIView):
+    renderer_classes = [UserRenders]
+    permission_classes = [IsAuthenticated]
     
+    def post(self,request,format=None):
+    
+        serializer = UserChangePasswordSerializer(data=request.data,context = {'user' : request.user})
+        serializer.is_valid(raise_exception=True)
         
+        return Response({'msg' : 'Password Changed Success!'}, status=status.HTTP_200_OK)
         
-# [] : TODO curl -l 로 비밀번호 패스워드 변경 테스트해보기
-class ChangePassword(APIView):
-    pass
         
 
 

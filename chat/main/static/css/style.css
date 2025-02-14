@@ -6,3 +6,8 @@ input {
     border : 1px solid #ccc;
     border-radius: 5px;
 }
+
+form{
+    margin-bottom: 30px;
+}
+
