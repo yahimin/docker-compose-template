@@ -9,6 +9,8 @@ from main.models import User
 from rest_framework.permissions import IsAuthenticated
 import random
 
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.tokens import RefreshToken
 from main.core._exception import InternalServerErrorException,BadRequestException,NotFoundException
 from main.core._client import HTTPClient
@@ -24,6 +26,8 @@ def loginpage(request):
 def changepage(request):
     return render(request,'chage.html')
 
+
+    
 def get_tokens_users(user):
     try:
         from rest_framework_simplejwt.tokens import RefreshToken
@@ -38,11 +42,7 @@ def get_tokens_users(user):
         raise ImportError('Plase install Simple jwt')
  
 
-         
-    
- 
-
-
+        
 class HTTPComponent:
     
     @staticmethod
@@ -66,8 +66,7 @@ class UserRegisterView(APIView):
         serializer.is_valid(raise_exception=True)
         
         try:
-            users = User.objects.all()
-            
+            users = User.objects.all()            
             client_email = request.data['email']
         
             for user in users:
@@ -82,30 +81,32 @@ class UserRegisterView(APIView):
             HTTPComponent.init_response(origin)
             
             user = serializer.save()
-        
-            return Response({'msg' : 'Register Sucess!'}, status=status.HTTP_201_CREATED)
+            
+            
+            return Response({
+                'email' : client_email
+            },status=status.HTTP_201_CREATED)
+
+            # return Response({'msg' : 'Register Sucess!'}, status=status.HTTP_201_CREATED)
             
         except Exception as e:
             raise InternalServerErrorException('Server Error!', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
     
 class UserListView(APIView):
+    
     renderer_classes = [UserRenders]
     
-        
     def get(self,fromat=None):
         try:
             users = User.objects.all()
 
+            users_ids = users.values_list('id','email','name')
             user_data=[]
-            for user in users:
-                
-                to_email = user.email
-                to_name = user.name
-                
-                
-                user_data.append({'email' : to_email , 'name' : to_name})
-                        
+
+            for user_id,email,name in users_ids:                
+                user_data.append({'id': user_id, 'email' : email , 'name' : name})                        
+            
             return Response(user_data, status=status.HTTP_200_OK)
 
         except Exception as e:
