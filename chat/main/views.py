@@ -9,6 +9,7 @@ from main.models import User
 from rest_framework.permissions import IsAuthenticated
 import random
 
+from rest_framework_simplejwt.tokens import RefreshToken
 from main.core._exception import InternalServerErrorException,BadRequestException,NotFoundException
 from main.core._client import HTTPClient
 
@@ -37,6 +38,10 @@ def get_tokens_users(user):
         raise ImportError('Plase install Simple jwt')
  
 
+         
+    
+ 
+
 
 class HTTPComponent:
     
@@ -48,16 +53,7 @@ class HTTPComponent:
 
         elif local_url is not None and 'Authorization' in local_url:
             HTTPClient.verfiy_url_jwt(local_url)
-   
-    @staticmethod
-    def init_decoded(token):
-        # refactor => HTTPClient 
-        import jwt
-        token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzM5NTM5NjQ1LCJpYXQiOjE3Mzk1MzcyNDUsImp0aSI6IjBmNzcyMTIxZTJhNzRhZjdiZjg2OGUwZDk1MmFhYzNhIiwidXNlcl9pZCI6NTZ9.fAHX49cyZRAjrJIGok-bcUusEfY1PfECtCti034La80'
-        
-        decoded = jwt.decode(token,options={'verify_signature' : False})
-        print(decoded)
-        
+
         
             
 class UserRegisterView(APIView):
@@ -133,15 +129,35 @@ class UserLoginView(APIView):
             if user.check_password(password):
                 token = get_tokens_users(user)
                 
-                               
+                
+                access__token = token['access']
+                refresh_token = token['refresh']
+                
+                
+                response = JsonResponse({
+                    'message' : 'Login Sucess!!',
+                })
+                
+                response.set_cookie('access_token' , access__token,
+                httponly=True,
+                samesite='Lax'                    
+                )
+                response.set_cookie('refresh_token', refresh_token,
+                httponly=True,
+                samesite='Lax'
+                )
                 r"""
                     1. check header origin 
                 """      
-                    
+                 
                 origin = request.headers['Origin']            
+                
                 HTTPComponent.init_response(origin)
                 
-                return Response({'token' : token, 'msg' : 'Login Sucess'},status=status.HTTP_200_OK)
+                print({'msg Sucess'})
+                return response
+
+                # return Response({'token' : token, 'msg' : 'Login Sucess'},status=status.HTTP_200_OK)
             else:
                 raise NotFoundException({'msg': 'Email password is incorrect'}, status=status.HTTP_404_NOT_FOUND)
             
@@ -196,14 +212,28 @@ class UserChangePasswordView(APIView):
             1. check header origin 
             2. check decode user jwt token 
         """        
-        
         HTTPComponent.init_response(request.headers)
                 
         return Response({'msg' : 'Password Changed Success!'}, status=status.HTTP_200_OK)
         
         
-
-
-
+class UserAccessTokenFromRefreshTokenView(APIView):
+        
+    def get(self, request):
+        try:
+            refresh_token = request.COOKIES.get('refresh_token')
+                        
+            if not refresh_token:
+                raise InternalServerErrorException({'msg': 'No refresh token error'})
+            
+            new_token = RefreshToken(refresh_token)
+            
+            new_acess_token = str(new_token)
+            
+            return Response({'msg': f'Refresh token Success {new_acess_token}'})
+        
+        except Exception as e:
+            raise InternalServerErrorException({'msg' : 'Server Error!'})
+        
 
     
