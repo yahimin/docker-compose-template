@@ -37,14 +37,9 @@ class User(AbstractBaseUser):
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['name']
+    REQUIRED_FIELDS = []
     
             
     def __str__(self):
         return f'{self.email} {self.name}'
     
-    def has_perm(self, perm, obj=None):
-        return self.is_admin
-  
-    def has_module_perms(self, app_label):
-        return True

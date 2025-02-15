@@ -26,7 +26,6 @@ def changepage(request):
 def get_tokens_users(user):
     try:
         from rest_framework_simplejwt.tokens import RefreshToken
-        from rest_framework_simplejwt.tokens import AccessToken
         
         token = RefreshToken.for_user(user)
     
@@ -42,8 +41,16 @@ def get_tokens_users(user):
 class HTTPComponent:
     
     @staticmethod
-    def init_response(local_url):        
-        
+    def init_response(local_url):     
+            
+        if local_url is not None and 'Authorization' not in local_url:
+            HTTPClient.verfiy_url(local_url)        
+
+        elif local_url is not None and 'Authorization' in local_url:
+            HTTPClient.verfiy_url_jwt(local_url)
+   
+    @staticmethod
+    def init_decoded(token):
         # refactor => HTTPClient 
         import jwt
         token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzM5NTM5NjQ1LCJpYXQiOjE3Mzk1MzcyNDUsImp0aSI6IjBmNzcyMTIxZTJhNzRhZjdiZjg2OGUwZDk1MmFhYzNhIiwidXNlcl9pZCI6NTZ9.fAHX49cyZRAjrJIGok-bcUusEfY1PfECtCti034La80'
@@ -51,13 +58,8 @@ class HTTPComponent:
         decoded = jwt.decode(token,options={'verify_signature' : False})
         print(decoded)
         
-        if local_url is not None:
-            HTTPClient.verfiy_url(local_url)
+        
             
-            
-
-
-# TODO [x] : header check class
 class UserRegisterView(APIView):
     # 요청 들어오는 필드 값이 빈값인지 유효성 검사
     renderer_classes = [UserRenders]
@@ -75,9 +77,10 @@ class UserRegisterView(APIView):
             for user in users:
                 if client_email == user.email:
                         raise BadRequestException({'msg': 'Duplicate  email'},status=status.HTTP_400_BAD_REQUEST)
-             
-             # http header checking (csrf , domain)     
-            
+                            
+            r"""
+                1. check header origin 
+            """         
             
             origin = request.headers['Origin']            
             HTTPComponent.init_response(origin)
@@ -99,10 +102,7 @@ class UserListView(APIView):
             users = User.objects.all()
 
             user_data=[]
-            from rest_framework_simplejwt.tokens import AccessToken
             for user in users:
-                
-                
                 
                 to_email = user.email
                 to_name = user.name
@@ -133,6 +133,11 @@ class UserLoginView(APIView):
             if user.check_password(password):
                 token = get_tokens_users(user)
                 
+                               
+                r"""
+                    1. check header origin 
+                """      
+                    
                 origin = request.headers['Origin']            
                 HTTPComponent.init_response(origin)
                 
@@ -164,6 +169,10 @@ class UserDeleteView(APIView):
             instance = User.objects.get(id=delete_id)
             instance.delete()
                 
+            r"""
+                1. check header origin 
+            """      
+                
             origin = request.headers['Origin']            
             HTTPComponent.init_response(origin)
         
@@ -173,7 +182,6 @@ class UserDeleteView(APIView):
             raise InternalServerErrorException('Servier Error!', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 
-# [X] : TODO curl -l 로 비밀번호 패스워드 변경 테스트해보기
 class UserChangePasswordView(APIView):
     renderer_classes = [UserRenders]
     permission_classes = [IsAuthenticated]
@@ -182,7 +190,15 @@ class UserChangePasswordView(APIView):
     
         serializer = UserChangePasswordSerializer(data=request.data,context = {'user' : request.user})
         serializer.is_valid(raise_exception=True)
+
+
+        r"""
+            1. check header origin 
+            2. check decode user jwt token 
+        """        
         
+        HTTPComponent.init_response(request.headers)
+                
         return Response({'msg' : 'Password Changed Success!'}, status=status.HTTP_200_OK)
         
         

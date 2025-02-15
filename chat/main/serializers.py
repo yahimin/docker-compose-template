@@ -41,11 +41,9 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             password = attrs.get('password')
             password_second = attrs.get('password_second')
             
-            
-            print(password_second)
-            
+                    
             if password != password_second:
-                raise BadRequestException({'msg' : 'Password and Confirm do not {api_type_set} match'},status=status.HTTP_400_BAD_REQUEST)
+                raise BadRequestException({'msg' : 'Password and Confirm do not match'},status=status.HTTP_400_BAD_REQUEST)
         
             if len(password) > 8 or len(password_second) > 8:
                 raise BadRequestException({'msg': 'User password len is incorrect'}, status=status.HTTP_400_BAD_REQUEST)
