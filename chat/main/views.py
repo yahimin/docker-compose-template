@@ -155,7 +155,8 @@ class UserLoginView(APIView):
                 
                 HTTPComponent.init_response(origin)
                 
-                print({'msg Sucess'})
+                
+                
                 return response
 
                 # return Response({'token' : token, 'msg' : 'Login Sucess'},status=status.HTTP_200_OK)
